@@ -1,0 +1,36 @@
+Intruksi
+
+Buka Tautan Google Drive: Klik tautan folder TuPan EduGames yang diberikan.
+
+Unduh Folder:
+
+Klik tombol Unduh Semua (Download all) di pojok kanan atas, ATAU
+
+Klik panah kecil di samping nama folder TuPan EduGames di bagian atas, lalu pilih Unduh (Download).
+
+Proses Kompresi: Tunggu sebentar sampai Google Drive selesai menyiapkan berkas ZIP (akan muncul notifikasi "Mengekstrak ZIP..." atau "Zipping file..." di pojok kanan bawah).
+
+Simpan: Pilih lokasi penyimpanan di komputer/laptop Anda, lalu klik Save.
+
+2. Membuka & Mengesktrak Berkas ZIP
+Buka folder Downloads tempat berkas ZIP tadi tersimpan (biasanya bernama TuPan EduGames.zip).
+
+Ekstrak Berkas:
+
+Klik kanan pada berkas TuPan EduGames.zip.
+
+Pilih Extract All... (Ekstrak Semua) lalu klik Extract, ATAU jika menggunakan WinRAR/7-Zip pilih Extract to "TuPan EduGames".
+
+Buka folder hasil ekstrak tersebut. Pastikan semua berkas (TuPan EduGames.html, bank_soal.js, berkas .png/.jpg, dan berkas suara .mp3) berada dalam satu folder yang sama.
+
+3. Cara Menjalankan Game
+Masuk ke dalam folder TuPan EduGames yang sudah diekstrak.
+
+Cari berkas bernama TuPan EduGames.html (atau berkas HTML utama game).
+
+Klik 2x (double-click) pada berkas tersebut. Game akan langsung terbuka di peramban web (Google Chrome, Microsoft Edge, atau Mozilla Firefox).
+
+4. Tips Saat Pertama Kali Bermain
+Aktivasi Suara & BGM: Saat halaman pertama terbuka, isi nama siswa lalu klik tombol Lanjut Pilih Kelas. Suara dan musik latar akan otomatis aktif setelah klik pertama tersebut.
+
+Cetak Rapor: Setelah selesai bermain, nilai dan evaluasi akan otomatis masuk ke rapor. Klik Cetak Rapor / PDF A4 untuk mencetak ke kertas atau menyimpannya sebagai file PDF.

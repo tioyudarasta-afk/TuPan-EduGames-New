@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuPan Edu Games - SD Negeri 078/IV Kota Jambi</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Kartun Fredoka & Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            blue: '#4361ee',
+                            purple: '#7209b7',
+                            pink: '#f72585',
+                            yellow: '#ffb703',
+                            green: '#06d6a0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f4f7fe;
+        }
+        .card-perspective {
+            perspective: 1000px;
+        }
+        .card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            backface-visibility: hidden;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* ATURAN KHUSUS CETAK RAPOR A4 PRESISI */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            header, footer, nav, .print\:hidden, #user-badge {
+                display: none !important;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            #screen-rapor {
+                display: block !important;
+                box-shadow: none !important;
+                border: 2px solid #1e293b !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+                padding: 20px !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                border-radius: 16px !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col">
+
+    <!-- TAG AUDIO EFEK SUARA & BGM -->
+    <audio id="sound-benar" src="benar.mp3" preload="auto"></audio>
+    <audio id="sound-salah" src="salah.mp3" preload="auto"></audio>
+    <audio id="sound-click" src="click.mp3" preload="auto"></audio>
+    <audio id="sound-bgm" src="bgm.mp3" loop preload="auto"></audio>
+
+    <!-- NAVBAR HEADER -->
+    <header class="bg-gradient-to-r from-brand-blue via-brand-purple to-brand-pink text-white shadow-lg sticky top-0 z-50 print:hidden">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="goMainHome()">
+                <div class="bg-white text-brand-purple p-2.5 rounded-2xl shadow-md text-2xl font-black">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black tracking-wide leading-tight">TuPan Edu Games</h1>
+                    <p class="text-xs font-poppins text-yellow-200">SD Negeri 078/IV Kota Jambi</p>
+                </div>
+            </div>
+
+            <!-- Profile Badge -->
+            <div id="user-badge" class="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/30 text-sm font-poppins font-semibold">
+                <i class="fa-solid fa-user-astronaut text-brand-yellow text-lg"></i>
+                <span id="player-name-display">Siswa SD</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER UTAMA -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+
+        <!-- SCREEN 0: INPUT DATA SISWA & GURU -->
+        <div id="screen-name-input" class="max-w-md mx-auto bg-white p-8 rounded-3xl shadow-xl border-4 border-brand-blue space-y-5 text-center my-6">
+            <div class="space-y-2">
+                <div class="w-16 h-16 bg-blue-100 text-brand-blue rounded-2xl flex items-center justify-center text-3xl mx-auto font-black shadow-sm">
+                    <i class="fa-solid fa-id-card"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold text-slate-800">Halo, Teman Pintar!</h2>
+                <p class="text-xs font-poppins text-slate-400">Lengkapi data di bawah ini sebelum memulai petualangan belajar!</p>
+            </div>
+
+            <div class="space-y-3 text-left font-poppins">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Lengkap Siswa <span class="text-red-500">*</span></label>
+                    <input type="text" id="input-student-name" class="w-full text-center text-base font-bold p-3 border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-blue-100 transition" placeholder="Masukkan Nama Lengkap Siswa..." autocomplete="off">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Nama Wali Kelas / Guru <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                    <input type="text" id="input-teacher-name" class="w-full text-center text-sm font-semibold p-3 border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-blue-100 transition" placeholder="Contoh: Budi Santoso, S.Pd" autocomplete="off">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">NIP Wali Kelas <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                    <input type="text" id="input-teacher-nip" class="w-full text-center text-sm font-semibold p-3 border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-brand-blue focus:ring-4 focus:ring-blue-100 transition" placeholder="Contoh: 198501012010011001" autocomplete="off">
+                </div>
+
+                <button onclick="saveStudentName()" class="w-full bg-brand-blue hover:bg-blue-600 text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition text-base font-poppins mt-2">
+                    Lanjut Pilih Kelas <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: PILIH KELAS -->
+        <div id="screen-class" class="hidden space-y-6">
+            <div class="text-center space-y-2">
+                <span class="bg-brand-yellow text-slate-900 font-bold px-4 py-1 rounded-full text-sm font-poppins inline-block shadow">Langkah 1</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800">Pilih Tingkat Kelas Kamu</h2>
+                <p class="text-slate-500 font-poppins max-w-md mx-auto">Pilih jenjang kelasmu untuk menyesuaikan materi tantangan permainan!</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 pt-2">
+                <button onclick="selectClass(1)" class="group bg-white hover:bg-gradient-to-br hover:from-blue-500 hover:to-indigo-600 hover:text-white p-6 rounded-3xl border-4 border-blue-200 shadow-lg hover:shadow-2xl transition duration-300 text-center transform hover:-translate-y-1">
+                    <div class="text-5xl mb-3 text-blue-500 group-hover:text-white transition-colors"><i class="fa-solid fa-1"></i></div>
+                    <div class="text-2xl font-black">Kelas 1 SD</div>
+                </button>
+                <button onclick="selectClass(2)" class="group bg-white hover:bg-gradient-to-br hover:from-emerald-500 hover:to-teal-600 hover:text-white p-6 rounded-3xl border-4 border-emerald-200 shadow-lg hover:shadow-2xl transition duration-300 text-center transform hover:-translate-y-1">
+                    <div class="text-5xl mb-3 text-emerald-500 group-hover:text-white transition-colors"><i class="fa-solid fa-2"></i></div>
+                    <div class="text-2xl font-black">Kelas 2 SD</div>
+                </button>
+                <button onclick="selectClass(3)" class="group bg-white hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-600 hover:text-white p-6 rounded-3xl border-4 border-purple-200 shadow-lg hover:shadow-2xl transition duration-300 text-center transform hover:-translate-y-1">
+                    <div class="text-5xl mb-3 text-purple-500 group-hover:text-white transition-colors"><i class="fa-solid fa-3"></i></div>
+                    <div class="text-2xl font-black">Kelas 3 SD</div>
+                </button>
+                <button onclick="selectClass(4)" class="group bg-white hover:bg-gradient-to-br hover:from-amber-500 hover:to-orange-600 hover:text-white p-6 rounded-3xl border-4 border-amber-200 shadow-lg hover:shadow-2xl transition duration-300 text-center transform hover:-translate-y-1">
+                    <div class="text-5xl mb-3 text-amber-500 group-hover:text-white transition-colors"><i class="fa-solid fa-4"></i></div>
+                    <div class="text-2xl font-black">Kelas 4 SD</div>
+                </button>
+                <button onclick="selectClass(5)" class="group bg-white hover:bg-gradient-to-br hover:from-rose-500 hover:to-red-600 hover:text-white p-6 rounded-3xl border-4 border-rose-200 shadow-lg hover:shadow-2xl transition duration-300 text-center transform hover:-translate-y-1">
+                    <div class="text-5xl mb-3 text-rose-500 group-hover:text-white transition-colors"><i class="fa-solid fa-5"></i></div>
+                    <div class="text-2xl font-black">Kelas 5 SD</div>
+                </button>
+                <button onclick="selectClass(6)" class="group bg-white hover:bg-gradient-to-br hover:from-cyan-500 hover:to-blue-700 hover:text-white p-6 rounded-3xl border-4 border-cyan-200 shadow-lg hover:shadow-2xl transition duration-300 text-center transform hover:-translate-y-1">
+                    <div class="text-5xl mb-3 text-cyan-500 group-hover:text-white transition-colors"><i class="fa-solid fa-6"></i></div>
+                    <div class="text-2xl font-black">Kelas 6 SD</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: PILIH MAPEL -->
+        <div id="screen-mapel" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <span id="selected-class-badge" class="bg-brand-blue text-white font-bold px-3 py-1 rounded-full text-xs font-poppins inline-block">Kelas 1 SD</span>
+                    <h2 class="text-3xl font-extrabold text-slate-800">Pilih Mata Pelajaran</h2>
+                </div>
+                <button onclick="goBackToClass()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-2xl font-poppins text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Ganti Kelas
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <button onclick="selectSubject('Matematika')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-brand-blue transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-100 text-brand-blue rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-calculator"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">Matematika</h3></div>
+                </button>
+
+                <button onclick="selectSubject('Bahasa Indonesia')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-brand-pink transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-pink-100 text-brand-pink rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-book-open"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">Bahasa Indonesia</h3></div>
+                </button>
+
+                <button onclick="selectSubject('Bahasa Inggris')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-indigo-500 transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-language"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">Bahasa Inggris</h3></div>
+                </button>
+
+                <button onclick="selectSubject('IPAS')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-brand-green transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-emerald-100 text-brand-green rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-flask"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">IPAS</h3></div>
+                </button>
+
+                <button onclick="selectSubject('Pendidikan Pancasila')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-red-500 transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-red-100 text-red-500 rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">Pendidikan Pancasila</h3></div>
+                </button>
+
+                <button onclick="selectSubject('Pendidikan Agama Islam')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-emerald-600 transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-kaaba"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">Agama Islam</h3></div>
+                </button>
+
+                <button onclick="selectSubject('Pendidikan Agama Kristen')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-cyan-600 transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-cross"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">Agama Kristen</h3></div>
+                </button>
+
+                <button onclick="selectSubject('PJOK')" class="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-md hover:shadow-xl hover:border-amber-500 transition text-left flex items-center gap-4">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl font-black"><i class="fa-solid fa-futbol"></i></div>
+                    <div><h3 class="text-lg font-bold text-slate-800">PJOK (Olahraga)</h3></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: PILIH GAME TYPE MENU -->
+        <div id="screen-game-menu" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 border-b border-slate-200 pb-4">
+                <div>
+                    <div class="flex gap-2 mb-1">
+                        <span id="game-class-tag" class="bg-brand-blue text-white font-bold px-2.5 py-0.5 rounded-md text-xs font-poppins">Kelas 1</span>
+                        <span id="game-mapel-tag" class="bg-brand-purple text-white font-bold px-2.5 py-0.5 rounded-md text-xs font-poppins">Matematika</span>
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-slate-800">Pilih Jenis Permainan</h2>
+                </div>
+                <button onclick="goBackToMapel()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-2xl font-poppins text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Ganti Mapel
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <button onclick="launchGameMode('quiz')" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-6 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between h-56">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-white/20 p-3 rounded-2xl text-2xl"><i class="fa-solid fa-circle-question"></i></div>
+                        <span class="bg-white/30 text-xs px-2.5 py-1 rounded-full font-poppins">Acak 10 Soal</span>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black">Kuis Interaktif</h3>
+                        <p class="text-xs text-blue-100 font-poppins mt-1">Soal pilihan ganda acak lengkap dengan petunjuk & penjelasan jawaban.</p>
+                    </div>
+                </button>
+
+                <button onclick="launchGameMode('memory')" class="bg-gradient-to-br from-purple-500 to-pink-600 text-white p-6 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between h-56">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-white/20 p-3 rounded-2xl text-2xl"><i class="fa-solid fa-clone"></i></div>
+                        <span class="bg-white/30 text-xs px-2.5 py-1 rounded-full font-poppins">Daya Ingat</span>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black">Kartu Memori</h3>
+                        <p class="text-xs text-purple-100 font-poppins mt-1">Balik & cocokkan pasangan gambar, istilah, atau rumus yang tepat.</p>
+                    </div>
+                </button>
+
+                <button onclick="launchGameMode('sort')" class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between h-56">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-white/20 p-3 rounded-2xl text-2xl"><i class="fa-solid fa-boxes-packing"></i></div>
+                        <span class="bg-white/30 text-xs px-2.5 py-1 rounded-full font-poppins">Klasifikasi</span>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black">Tarik & Kelompokkan</h3>
+                        <p class="text-xs text-emerald-100 font-poppins mt-1">Kelompokkan objek atau kata ke kotak wadah kategori yang benar.</p>
+                    </div>
+                </button>
+
+                <button onclick="launchGameMode('scramble')" class="bg-gradient-to-br from-amber-500 to-orange-600 text-white p-6 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between h-56">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-white/20 p-3 rounded-2xl text-2xl"><i class="fa-solid fa-arrow-down-a-z"></i></div>
+                        <span class="bg-white/30 text-xs px-2.5 py-1 rounded-full font-poppins">Sastra</span>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black">Susun Kata (Scramble)</h3>
+                        <p class="text-xs text-amber-100 font-poppins mt-1">Susun huruf-huruf acak menjadi istilah kata yang tepat sesuai hint.</p>
+                    </div>
+                </button>
+
+                <button onclick="launchGameMode('fastmath')" class="bg-gradient-to-br from-rose-500 to-red-600 text-white p-6 rounded-3xl shadow-lg hover:shadow-2xl transition transform hover:-translate-y-1 text-left flex flex-col justify-between h-56 md:col-span-2">
+                    <div class="flex justify-between items-start">
+                        <div class="bg-white/20 p-3 rounded-2xl text-2xl"><i class="fa-solid fa-bolt"></i></div>
+                        <span class="bg-white/30 text-xs px-2.5 py-1 rounded-full font-poppins">Kecepatan Refleks</span>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-black">Tangkas Berhitung Cepat</h3>
+                        <p class="text-xs text-rose-100 font-poppins mt-1">Tantangan hitung cepat dengan timer waktu mundur! Pacu skor tertinggi kamu.</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ARENA PERMAINAN -->
+        <div id="arena-container" class="hidden">
+            <div class="bg-white rounded-2xl p-4 shadow-sm mb-6 flex flex-wrap justify-between items-center gap-3 border border-slate-100 font-poppins">
+                <button onclick="quitCurrentGame()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-xmark"></i> Keluar Game
+                </button>
+                <div class="flex items-center gap-4 text-sm font-bold">
+                    <div class="text-brand-blue"><i class="fa-solid fa-trophy text-brand-yellow"></i> Skor: <span id="game-score">0</span></div>
+                    <div id="timer-box" class="text-rose-500 hidden"><i class="fa-solid fa-stopwatch"></i> Waktu: <span id="game-timer">30</span>s</div>
+                </div>
+            </div>
+
+            <!-- GAME 1: KUIS INTERAKTIF -->
+            <div id="game-quiz-area" class="hidden bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 space-y-6">
+                <div class="flex justify-between text-xs font-poppins font-semibold text-slate-400">
+                    <span id="quiz-progress-text">Soal 1 dari 10</span>
+                    <span id="quiz-badge-mapel" class="text-brand-blue">Matematika</span>
+                </div>
+                
+                <h3 id="quiz-question" class="text-2xl md:text-3xl font-extrabold text-slate-800 leading-snug">Berapakah hasil dari 3 + 4?</h3>
+
+                <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"></div>
+
+                <div id="quiz-feedback" class="hidden p-4 rounded-2xl text-sm font-poppins"></div>
+                <div id="quiz-hint" class="bg-amber-50 text-amber-800 border-l-4 border-amber-400 p-4 rounded-xl text-xs font-poppins"></div>
+
+                <div class="flex justify-end pt-2">
+                    <button id="btn-quiz-next" onclick="nextQuizQuestion()" disabled class="bg-brand-blue hover:bg-blue-600 disabled:bg-slate-200 text-white font-bold px-6 py-3 rounded-2xl transition font-poppins shadow-md">
+                        Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- GAME 2: KARTU MEMORI -->
+            <div id="game-memory-area" class="hidden space-y-4">
+                <div class="text-center font-poppins">
+                    <p class="text-sm text-slate-500">Temukan dan cocokkan pasangan kartu yang memiliki arti / hubungan sama!</p>
+                </div>
+                <div id="memory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-3xl mx-auto"></div>
+            </div>
+
+            <!-- GAME 3: TARIK & KELOMPOKKAN -->
+            <div id="game-sort-area" class="hidden space-y-6">
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-slate-800">Klik Pilihan Lalu Klik Wadah Kategori yang Tepat!</h3>
+                </div>
+
+                <div id="sort-targets" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+
+                <div class="bg-slate-100 p-4 rounded-2xl text-center">
+                    <p class="text-xs font-poppins text-slate-400 mb-3">Item yang Harus Dikategorikan:</p>
+                    <div id="sort-items-pool" class="flex flex-wrap justify-center gap-3"></div>
+                </div>
+            </div>
+
+            <!-- GAME 4: SUSUN KATA -->
+            <div id="game-scramble-area" class="hidden bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 space-y-6 text-center">
+                <div class="space-y-2">
+                    <span class="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full font-poppins font-bold">Tebak Istilah</span>
+                    <h3 id="scramble-hint" class="text-lg font-bold text-slate-600 font-poppins">Petunjuk: Hewan berkaki empat yang menggonggong</h3>
+                </div>
+
+                <div id="scramble-letters" class="flex justify-center gap-2 my-6 flex-wrap"></div>
+
+                <div class="max-w-xs mx-auto">
+                    <input type="text" id="scramble-input" class="w-full text-center text-3xl font-black tracking-widest p-3 border-4 border-brand-yellow rounded-2xl uppercase focus:outline-none focus:border-brand-blue" placeholder="JAWABAN">
+                </div>
+
+                <div>
+                    <button onclick="checkScrambleAnswer()" class="bg-brand-yellow hover:bg-amber-500 text-slate-900 font-extrabold px-8 py-3 rounded-2xl shadow-lg transition text-lg">
+                        Cek Jawaban <i class="fa-solid fa-check ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- GAME 5: TANGKAS BERHITUNG -->
+            <div id="game-fastmath-area" class="hidden bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100 space-y-6 text-center max-w-xl mx-auto">
+                <div class="space-y-2">
+                    <span class="bg-rose-100 text-rose-600 text-xs px-3 py-1 rounded-full font-poppins font-bold">Hitung Cepat</span>
+                    <div id="fastmath-expr" class="text-5xl font-black text-brand-blue my-4">5 + 8 = ?</div>
+                </div>
+
+                <div id="fastmath-options" class="grid grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+
+        <!-- SCREEN RAPOR HASIL BELAJAR (PRINTABLE A4 PRECISION) -->
+        <div id="screen-rapor" class="hidden max-w-2xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-2xl border-4 border-slate-800 space-y-5 my-4 text-slate-800">
+            
+            <!-- KOP RAPOR RESMI DENGAN LOGO LOKAL -->
+            <div class="flex items-center justify-between border-b-2 border-slate-900 pb-3 gap-3">
+                <!-- Logo Kiri: SD Negeri 078/IV Kota Jambi -->
+                <div class="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 flex items-center justify-center">
+                    <img src="1000709268.png" alt="Logo SDN 078/IV Kota Jambi" class="max-h-full max-w-full object-contain">
+                </div>
+                
+                <!-- Teks Kop Sekolah -->
+                <div class="text-center flex-grow">
+                    <h4 class="text-[10px] md:text-[11px] font-bold font-poppins text-slate-600 uppercase tracking-widest leading-tight">PEMERINTAH KOTA JAMBI</h4>
+                    <h3 class="text-xs md:text-base font-black font-poppins text-slate-900 uppercase tracking-wide">SD NEGERI 078/IV KOTA JAMBI</h3>
+                    <h2 class="text-base md:text-xl font-black text-brand-blue tracking-wide my-0.5">RAPOR HASIL BELAJAR SISWA</h2>
+                    <p class="text-[9px] md:text-[10px] font-poppins text-slate-500 italic">Portal Pembelajaran Interaktif - TuPan Edu Games</p>
+                </div>
+
+                <!-- Logo Kanan: Tut Wuri Handayani -->
+                <div class="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 flex items-center justify-center">
+                    <img src="LOgo tut wuri handayani.jpg" alt="Logo Tut Wuri Handayani" class="max-h-full max-w-full object-contain">
+                </div>
+            </div>
+
+            <!-- IDENTITAS SISWA & GAME -->
+            <div class="grid grid-cols-2 gap-2.5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 font-poppins text-xs md:text-sm">
+                <div>
+                    <p class="text-[10px] md:text-xs text-slate-400">Nama Lengkap Siswa:</p>
+                    <p id="rapor-student-name" class="font-bold text-slate-800 text-sm md:text-base">Siswa SD</p>
+                </div>
+                <div>
+                    <p class="text-[10px] md:text-xs text-slate-400">Tingkat / Kelas:</p>
+                    <p id="rapor-class" class="font-bold text-slate-800 text-sm md:text-base">Kelas 4 SD</p>
+                </div>
+                <div>
+                    <p class="text-[10px] md:text-xs text-slate-400">Mata Pelajaran:</p>
+                    <p id="rapor-subject" class="font-bold text-slate-800 text-sm md:text-base">Matematika</p>
+                </div>
+                <div>
+                    <p class="text-[10px] md:text-xs text-slate-400">Jenis Permainan:</p>
+                    <p id="rapor-gamemode" class="font-bold text-slate-800 text-sm md:text-base">Kuis Interaktif</p>
+                </div>
+            </div>
+
+            <!-- RINCIAN SKOR & BINTANG PRESTASI (SISTEM 5 BINTANG) -->
+            <div class="grid grid-cols-2 gap-3 my-2">
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-2xl text-center flex flex-col justify-center">
+                    <p class="text-[10px] md:text-xs font-poppins text-blue-600 font-bold uppercase tracking-wider">Skor Akhir Siswa</p>
+                    <p id="rapor-final-score" class="text-3xl md:text-4xl font-black text-blue-700 leading-tight">100</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-center flex flex-col justify-center items-center">
+                    <p class="text-[10px] md:text-xs font-poppins text-amber-700 font-bold uppercase tracking-wider">Bintang Prestasi (5 Bintang)</p>
+                    <div id="rapor-stars" class="text-lg md:text-2xl text-amber-400 mt-1 flex gap-1 justify-center">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CATATAN EVALUASI / MOTIVASI GURU (DESKRIPSI PANJANG) -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left space-y-1">
+                <p class="text-[10px] md:text-xs font-poppins text-slate-400 font-bold uppercase tracking-wider">Catatan Evaluasi & Motivasi Guru / Pembimbing:</p>
+                <p id="rapor-message" class="text-xs md:text-sm font-poppins font-medium text-slate-700 leading-relaxed italic">
+                    "Sangat luar biasa! Ananda berhasil menyelesaikan seluruh 10 tantangan soal dengan pemahaman yang amat matang. Pertahankan semangat belajar yang luar biasa ini dan teruslah mengasah potensi diri untuk meraih prestasi terbaik di masa depan!"
+                </p>
+            </div>
+
+            <!-- KOLOM TANDA TANGAN KEPALA SEKOLAH & GURU -->
+            <div class="pt-2 font-poppins text-xs text-slate-800">
+                <p id="rapor-print-date" class="text-right font-medium mb-1">Kota Jambi, -</p>
+                
+                <div class="grid grid-cols-2 gap-6 text-center pt-1">
+                    <!-- TTD Guru / Wali Kelas -->
+                    <div class="space-y-10">
+                        <p class="font-bold">Guru / Wali Kelas</p>
+                        <div>
+                            <p id="rapor-teacher-name" class="font-bold underline uppercase decoration-1">( .................................................... )</p>
+                            <p id="rapor-teacher-nip" class="text-slate-600 text-[10px]">NIP. -</p>
+                        </div>
+                    </div>
+
+                    <!-- TTD Kepala Sekolah -->
+                    <div class="space-y-10">
+                        <p class="font-bold">Kepala Sekolah</p>
+                        <div>
+                            <p class="font-bold underline uppercase decoration-1">LIDYA PRIHATIN, S.Pd, M.Pd</p>
+                            <p class="text-slate-700 text-[10px]">NIP. 197207122005012010</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOMBOL NAVIGASI & CETAK (Tidak ikut dicetak) -->
+            <div class="flex flex-col sm:flex-row justify-center gap-3 pt-3 font-poppins print:hidden border-t border-slate-100">
+                <button onclick="restartCurrentGame()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Main Lagi
+                </button>
+                <button onclick="printRapor()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl shadow transition text-sm">
+                    <i class="fa-solid fa-print mr-1"></i> Cetak Rapor / PDF A4
+                </button>
+                <button onclick="goBackToMapel()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-5 py-2.5 rounded-xl transition text-sm">
+                    Pilih Game Lain
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto text-center text-xs font-poppins text-slate-400 print:hidden">
+        <p>© 2026 TuPan Edu Games - SD Negeri 078/IV Kota Jambi</p>
+    </footer>
+
+    <!-- Pemanggilan File Bank Soal Eksternal (bank_soal.js) -->
+    <script src="bank_soal.js"></script>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- SISTEM PEMUTAR SUARA AUDIO ---
+        function playSound(soundId) {
+            const audio = document.getElementById(soundId);
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(err => console.log("Autoplay dicegah browser:", err));
+            }
+        }
+
+        function startBGM() {
+            const bgm = document.getElementById('sound-bgm');
+            if (bgm) {
+                bgm.volume = 0.25;
+                bgm.play().catch(e => console.log("BGM menunggu interaksi pengguna."));
+            }
+        }
+
+        // FALLBACK BANK SOAL INTERNAL (Dipakai jika file bank_soal.js belum termuat)
+        const localDatabaseSoal = {
+            1: {
+                "Matematika": [
+                    { q: "Berapa hasil dari 3 + 4?", a: ["5", "6", "7", "8"], c: 2, hint: "Hitung maju 4 langkah dari 3.", r: "3 + 4 = 7." },
+                    { q: "Ibu punya 8 apel, dimakan adik 3. Berapa sisa apel ibu?", a: ["5", "4", "6", "3"], c: 0, hint: "Kurangi 8 dengan 3.", r: "8 - 3 = 5." },
+                    { q: "Bangun datar yang punya 3 sisi adalah...", a: ["Persegi", "Segitiga", "Lingkaran", "Persegi Panjang"], c: 1, hint: "Jumlah sisinya ada tiga.", r: "Segitiga memiliki 3 sisi." },
+                    { q: "Angka berapa di antara 7 dan 9?", a: ["6", "8", "10", "5"], c: 1, hint: "Hitung urut: 7, ..., 9.", r: "Angka 8 terletak di antara 7 dan 9." },
+                    { q: "Manakah yang merupakan urutan bilangan mengecil?", a: ["1, 2, 3", "5, 4, 3", "2, 4, 6", "3, 5, 7"], c: 1, hint: "Nilainya berkurang dari besar ke kecil.", r: "5, 4, 3 berurut menurun." }
+                ]
+            }
+        };
+
+        // GLOBAL STATE
+        let state = {
+            studentName: 'Siswa SD',
+            teacherName: '',
+            teacherNip: '',
+            classNum: 1,
+            subject: 'Matematika',
+            gameMode: 'quiz',
+            score: 0,
+            questionIndex: 0,
+            activeQuestions: [],
+            timer: null,
+            timeRemaining: 30,
+            memoryCards: [],
+            flippedCards: [],
+            matchedPairs: 0
+        };
+
+        // FUNGSI AMBIL SOAL (KONEKSI BANK_SOAL.JS + SHUFFLE 10 SOAL)
+        function getShuffledQuestions() {
+            let pool = [];
+            
+            // 1. Prioritaskan ambil dari bank_soal.js jika ada
+            if (typeof databaseSoal !== 'undefined' && databaseSoal[state.classNum] && databaseSoal[state.classNum][state.subject]) {
+                pool = [...databaseSoal[state.classNum][state.subject]];
+            } 
+            // 2. Jika tidak ada di bank_soal.js, fallback ke data lokal HTML
+            else if (localDatabaseSoal[state.classNum] && localDatabaseSoal[state.classNum][state.subject]) {
+                pool = [...localDatabaseSoal[state.classNum][state.subject]];
+            }
+
+            if (pool.length === 0) {
+                alert(`Soal untuk Kelas ${state.classNum} - ${state.subject} belum tersedia di bank_soal.js!`);
+                return [];
+            }
+
+            // 3. Algoritma Acak Fisher-Yates
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            // 4. Ambil maksimal 10 soal teracak
+            return pool.slice(0, 10);
+        }
+
+        // USER NAME LOGIC
+        function saveStudentName() {
+            playSound('sound-click');
+            startBGM(); // Memulai musik latar saat pengguna mengklik tombol pertama kali
+            
+            const studentInput = document.getElementById('input-student-name').value.trim();
+            const teacherInput = document.getElementById('input-teacher-name').value.trim();
+            const nipInput = document.getElementById('input-teacher-nip').value.trim();
+
+            if (studentInput === "") {
+                alert("Ketikkan nama siswa terlebih dahulu ya!");
+                return;
+            }
+            
+            state.studentName = studentInput;
+            state.teacherName = teacherInput;
+            state.teacherNip = nipInput;
+
+            document.getElementById('player-name-display').innerText = studentInput;
+            document.getElementById('screen-name-input').classList.add('hidden');
+            document.getElementById('screen-class').classList.remove('hidden');
+        }
+
+        // NAVIGATION LOGIC
+        function selectClass(classNum) {
+            playSound('sound-click');
+            state.classNum = classNum;
+            document.getElementById('screen-class').classList.add('hidden');
+            document.getElementById('screen-mapel').classList.remove('hidden');
+            document.getElementById('selected-class-badge').innerText = `Kelas ${classNum} SD`;
+        }
+
+        function goBackToClass() {
+            playSound('sound-click');
+            document.getElementById('screen-mapel').classList.add('hidden');
+            document.getElementById('screen-class').classList.remove('hidden');
+        }
+
+        function selectSubject(subjectName) {
+            playSound('sound-click');
+            state.subject = subjectName;
+            document.getElementById('screen-mapel').classList.add('hidden');
+            document.getElementById('screen-game-menu').classList.remove('hidden');
+            document.getElementById('game-class-tag').innerText = `Kelas ${state.classNum}`;
+            document.getElementById('game-mapel-tag').innerText = subjectName;
+        }
+
+        function goBackToMapel() {
+            playSound('sound-click');
+            document.getElementById('screen-game-menu').classList.add('hidden');
+            document.getElementById('arena-container').classList.add('hidden');
+            document.getElementById('screen-rapor').classList.add('hidden');
+            document.getElementById('screen-mapel').classList.remove('hidden');
+            clearInterval(state.timer);
+        }
+
+        function goMainHome() {
+            playSound('sound-click');
+            document.getElementById('arena-container').classList.add('hidden');
+            document.getElementById('screen-game-menu').classList.add('hidden');
+            document.getElementById('screen-mapel').classList.add('hidden');
+            document.getElementById('screen-rapor').classList.add('hidden');
+            document.getElementById('screen-class').classList.add('hidden');
+            document.getElementById('screen-name-input').classList.remove('hidden');
+            clearInterval(state.timer);
+        }
+
+        // LAUNCH GAME ENGINE
+        function launchGameMode(mode) {
+            playSound('sound-click');
+            state.gameMode = mode;
+            state.score = 0;
+            state.questionIndex = 0;
+            document.getElementById('game-score').innerText = '0';
+            
+            // Ambil 10 Soal Acak Dari bank_soal.js
+            state.activeQuestions = getShuffledQuestions();
+            if (state.activeQuestions.length === 0) return;
+
+            document.getElementById('screen-game-menu').classList.add('hidden');
+            document.getElementById('arena-container').classList.remove('hidden');
+
+            ['quiz', 'memory', 'sort', 'scramble', 'fastmath'].forEach(m => {
+                document.getElementById(`game-${m}-area`).classList.add('hidden');
+            });
+
+            document.getElementById('timer-box').classList.add('hidden');
+            clearInterval(state.timer);
+
+            if (mode === 'quiz') startQuizEngine();
+            else if (mode === 'memory') startMemoryEngine();
+            else if (mode === 'sort') startSortEngine();
+            else if (mode === 'scramble') startScrambleEngine();
+            else if (mode === 'fastmath') startFastMathEngine();
+        }
+
+        function quitCurrentGame() {
+            playSound('sound-click');
+            clearInterval(state.timer);
+            goBackToMapel();
+        }
+
+        // ENGINE 1: KUIS INTERAKTIF
+        function startQuizEngine() {
+            document.getElementById('game-quiz-area').classList.remove('hidden');
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const currentQ = state.activeQuestions[state.questionIndex];
+
+            document.getElementById('quiz-progress-text').innerText = `Soal ${state.questionIndex + 1} dari ${state.activeQuestions.length}`;
+            document.getElementById('quiz-badge-mapel').innerText = state.subject;
+            document.getElementById('quiz-question').innerText = currentQ.q;
+            document.getElementById('quiz-hint').innerText = `💡 Hint/Petunjuk: ${currentQ.hint}`;
+            
+            const feedbackBox = document.getElementById('quiz-feedback');
+            feedbackBox.classList.add('hidden');
+            feedbackBox.className = 'p-4 rounded-2xl text-sm font-poppins hidden';
+
+            document.getElementById('btn-quiz-next').disabled = true;
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            currentQ.a.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-800 p-4 rounded-2xl font-bold text-left transition flex items-center justify-between font-poppins';
+                btn.innerHTML = `<span>${String.fromCharCode(65 + idx)}. ${opt}</span> <i class="fa-regular fa-circle text-slate-300"></i>`;
+                btn.onclick = () => answerQuiz(idx, currentQ.c);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function answerQuiz(selected, correct) {
+            const options = document.querySelectorAll('#quiz-options button');
+            options.forEach(b => b.disabled = true);
+
+            const feedbackBox = document.getElementById('quiz-feedback');
+            const currentQ = state.activeQuestions[state.questionIndex];
+
+            const poinPerSoal = Math.round(100 / state.activeQuestions.length);
+
+            if (selected === correct) {
+                playSound('sound-benar');
+                state.score += poinPerSoal;
+                document.getElementById('game-score').innerText = state.score;
+                options[selected].className = 'w-full bg-emerald-100 border-2 border-emerald-500 text-emerald-900 p-4 rounded-2xl font-bold text-left transition flex items-center justify-between font-poppins';
+                options[selected].innerHTML = `<span>${options[selected].innerText}</span> <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>`;
+                
+                feedbackBox.className = 'p-4 rounded-2xl text-sm font-poppins bg-emerald-50 text-emerald-800 border border-emerald-200';
+                feedbackBox.innerHTML = `<strong>✨ Benar Sekali!</strong><br>${currentQ.r}`;
+            } else {
+                playSound('sound-salah');
+                options[selected].className = 'w-full bg-rose-100 border-2 border-rose-500 text-rose-900 p-4 rounded-2xl font-bold text-left transition flex items-center justify-between font-poppins';
+                options[selected].innerHTML = `<span>${options[selected].innerText}</span> <i class="fa-solid fa-circle-xmark text-rose-600 text-xl"></i>`;
+                
+                options[correct].className = 'w-full bg-emerald-100 border-2 border-emerald-500 text-emerald-900 p-4 rounded-2xl font-bold text-left transition flex items-center justify-between font-poppins';
+
+                feedbackBox.className = 'p-4 rounded-2xl text-sm font-poppins bg-rose-50 text-rose-800 border border-rose-200';
+                feedbackBox.innerHTML = `<strong>❌ Kurang Tepat!</strong><br>${currentQ.r}`;
+            }
+
+            feedbackBox.classList.remove('hidden');
+            document.getElementById('btn-quiz-next').disabled = false;
+        }
+
+        function nextQuizQuestion() {
+            playSound('sound-click');
+            state.questionIndex++;
+            if (state.questionIndex < state.activeQuestions.length) {
+                renderQuizQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        // ENGINE 2: KARTU MEMORI
+        function startMemoryEngine() {
+            document.getElementById('game-memory-area').classList.remove('hidden');
+            
+            let deck = [];
+            state.activeQuestions.slice(0, 4).forEach((q, idx) => {
+                deck.push({ id: idx, text: q.q, pairId: idx });
+                deck.push({ id: idx + 100, text: q.a[q.c], pairId: idx });
+            });
+
+            deck.sort(() => Math.random() - 0.5);
+            state.memoryCards = deck;
+            state.flippedCards = [];
+            state.matchedPairs = 0;
+
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+
+            deck.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card-perspective min-h-[120px] h-auto cursor-pointer';
+                cardEl.innerHTML = `
+                    <div class="card-inner w-full h-full min-h-[120px] rounded-2xl shadow-md border-2 border-brand-purple bg-white flex items-center justify-center p-3 text-center font-bold text-xs leading-relaxed font-poppins transition-transform" id="mem-card-${index}">
+                        <div class="card-front text-brand-purple text-2xl flex items-center justify-center"><i class="fa-solid fa-star"></i></div>
+                        <div class="card-back absolute inset-0 p-3 flex items-center justify-center bg-white rounded-2xl text-slate-800 break-words leading-tight overflow-y-auto text-center font-semibold text-xs">${card.text}</div>
+                    </div>
+                `;
+                cardEl.onclick = () => flipMemoryCard(index);
+                grid.appendChild(cardEl);
+            });
+        }
+
+        function flipMemoryCard(index) {
+            if (state.flippedCards.length === 2) return;
+            const cardEl = document.getElementById(`mem-card-${index}`);
+            if (cardEl.classList.contains('flipped')) return;
+
+            playSound('sound-click');
+            cardEl.classList.add('flipped');
+            state.flippedCards.push({ index, card: state.memoryCards[index] });
+
+            if (state.flippedCards.length === 2) {
+                const [c1, c2] = state.flippedCards;
+                if (c1.card.pairId === c2.card.pairId && c1.card.id !== c2.card.id) {
+                    playSound('sound-benar');
+                    state.score += 25;
+                    state.matchedPairs++;
+                    document.getElementById('game-score').innerText = state.score;
+                    state.flippedCards = [];
+                    if (state.matchedPairs === 4) setTimeout(finishGame, 800);
+                } else {
+                    playSound('sound-salah');
+                    setTimeout(() => {
+                        document.getElementById(`mem-card-${c1.index}`).classList.remove('flipped');
+                        document.getElementById(`mem-card-${c2.index}`).classList.remove('flipped');
+                        state.flippedCards = [];
+                    }, 1000);
+                }
+            }
+        }
+
+        // ENGINE 3: TARIK & KELOMPOKKAN
+        function startSortEngine() {
+            document.getElementById('game-sort-area').classList.remove('hidden');
+            const questions = state.activeQuestions;
+            
+            const targetContainer = document.getElementById('sort-targets');
+            const poolContainer = document.getElementById('sort-items-pool');
+            targetContainer.innerHTML = '';
+            poolContainer.innerHTML = '';
+
+            const cat1 = questions[0].a[questions[0].c];
+            const cat2 = questions[1].a[questions[1].c];
+
+            targetContainer.innerHTML = `
+                <div class="bg-blue-50 border-2 border-dashed border-blue-300 p-4 rounded-2xl min-h-[160px] text-center" id="target-cat-0" onclick="dropSortItem(0)">
+                    <h4 class="font-bold text-blue-700 font-poppins mb-2">Kategori A: ${cat1}</h4>
+                    <div id="cat-items-0" class="flex flex-wrap gap-2 justify-center"></div>
+                </div>
+                <div class="bg-emerald-50 border-2 border-dashed border-emerald-300 p-4 rounded-2xl min-h-[160px] text-center" id="target-cat-1" onclick="dropSortItem(1)">
+                    <h4 class="font-bold text-emerald-700 font-poppins mb-2">Kategori B: ${cat2}</h4>
+                    <div id="cat-items-1" class="flex flex-wrap gap-2 justify-center"></div>
+                </div>
+            `;
+
+            let sortItems = [
+                { text: questions[0].a[questions[0].c], correctCat: 0 },
+                { text: questions[1].a[questions[1].c], correctCat: 1 },
+                { text: questions[2] ? questions[2].a[questions[2].c] : questions[0].a[0], correctCat: 0 },
+                { text: questions[3] ? questions[3].a[questions[3].c] : questions[1].a[0], correctCat: 1 }
+            ].sort(() => Math.random() - 0.5);
+
+            window.selectedSortItem = null;
+
+            sortItems.forEach((item, idx) => {
+                const itemEl = document.createElement('button');
+                itemEl.className = 'bg-white shadow border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold font-poppins hover:border-brand-blue transition';
+                itemEl.innerText = item.text;
+                itemEl.onclick = () => {
+                    playSound('sound-click');
+                    document.querySelectorAll('#sort-items-pool button').forEach(b => b.classList.remove('ring-4', 'ring-brand-blue'));
+                    itemEl.classList.add('ring-4', 'ring-brand-blue');
+                    window.selectedSortItem = { el: itemEl, item };
+                };
+                poolContainer.appendChild(itemEl);
+            });
+        }
+
+        function dropSortItem(catIndex) {
+            if (!window.selectedSortItem) return;
+            const { el, item } = window.selectedSortItem;
+
+            if (item.correctCat === catIndex) {
+                playSound('sound-benar');
+                state.score += 25;
+                document.getElementById('game-score').innerText = state.score;
+                document.getElementById(`cat-items-${catIndex}`).appendChild(el);
+                el.className = 'bg-emerald-500 text-white px-3 py-1 rounded-lg text-xs font-bold font-poppins';
+                el.onclick = null;
+                window.selectedSortItem = null;
+
+                if (document.getElementById('sort-items-pool').children.length === 0) {
+                    setTimeout(finishGame, 800);
+                }
+            } else {
+                playSound('sound-salah');
+                alert('❌ Kategori kurang tepat, coba lagi!');
+            }
+        }
+
+        // ENGINE 4: SUSUN KATA
+        function startScrambleEngine() {
+            document.getElementById('game-scramble-area').classList.remove('hidden');
+            const q = state.activeQuestions[state.questionIndex];
+            
+            const targetWord = q.a[q.c].toUpperCase().replace(/[^A-Z]/g, '');
+            document.getElementById('scramble-hint').innerText = `Petunjuk: ${q.hint}`;
+
+            let letters = targetWord.split('').sort(() => Math.random() - 0.5);
+            const lettersDiv = document.getElementById('scramble-letters');
+            lettersDiv.innerHTML = '';
+
+            letters.forEach(l => {
+                const span = document.createElement('span');
+                span.className = 'w-12 h-12 bg-brand-yellow text-slate-900 font-black text-xl flex items-center justify-center rounded-2xl shadow-md border-2 border-amber-300';
+                span.innerText = l;
+                lettersDiv.appendChild(span);
+            });
+
+            document.getElementById('scramble-input').value = '';
+            window.scrambleTarget = targetWord;
+        }
+
+        function checkScrambleAnswer() {
+            const input = document.getElementById('scramble-input').value.trim().toUpperCase();
+            if (input === window.scrambleTarget) {
+                playSound('sound-benar');
+                state.score += 100;
+                document.getElementById('game-score').innerText = state.score;
+                alert('✨ Hebat! Jawaban Kamu Benar!');
+                finishGame();
+            } else {
+                playSound('sound-salah');
+                alert('❌ Susunan kata masih salah, coba periksa kembali!');
+            }
+        }
+
+        // ENGINE 5: TANGKAS BERHITUNG
+        function startFastMathEngine() {
+            document.getElementById('game-fastmath-area').classList.remove('hidden');
+            document.getElementById('timer-box').classList.remove('hidden');
+
+            state.timeRemaining = 30;
+            document.getElementById('game-timer').innerText = '30';
+
+            state.timer = setInterval(() => {
+                state.timeRemaining--;
+                document.getElementById('game-timer').innerText = state.timeRemaining;
+                if (state.timeRemaining <= 0) {
+                    clearInterval(state.timer);
+                    finishGame();
+                }
+            }, 1000);
+
+            renderFastMathQuestion();
+        }
+
+        function renderFastMathQuestion() {
+            const num1 = Math.floor(Math.random() * 10 * state.classNum) + 1;
+            const num2 = Math.floor(Math.random() * 10 * state.classNum) + 1;
+            const correct = num1 + num2;
+
+            document.getElementById('fastmath-expr').innerText = `${num1} + ${num2} = ?`;
+
+            let options = [correct, correct + 2, correct - 1, correct + 5].sort(() => Math.random() - 0.5);
+            const optsDiv = document.getElementById('fastmath-options');
+            optsDiv.innerHTML = '';
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'bg-blue-50 hover:bg-brand-blue hover:text-white border-2 border-blue-200 text-brand-blue font-black text-2xl py-4 rounded-2xl transition font-fredoka shadow-sm';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if (opt === correct) {
+                        playSound('sound-benar');
+                        state.score += 10;
+                        document.getElementById('game-score').innerText = state.score;
+                    } else {
+                        playSound('sound-salah');
+                    }
+                    renderFastMathQuestion();
+                };
+                optsDiv.appendChild(btn);
+            });
+        }
+
+        // FINISH GAME & RAPOR DISPLAY (SISTEM 5 BINTANG & MOTIVASI NARATIF PANJANG)
+        function finishGame() {
+            clearInterval(state.timer);
+            document.getElementById('arena-container').classList.add('hidden');
+            document.getElementById('screen-rapor').classList.remove('hidden');
+
+            document.getElementById('rapor-student-name').innerText = state.studentName;
+            document.getElementById('rapor-class').innerText = `Kelas ${state.classNum} SD`;
+            document.getElementById('rapor-subject').innerText = state.subject;
+            document.getElementById('rapor-gamemode').innerText = getGameModeLabel(state.gameMode);
+            document.getElementById('rapor-final-score').innerText = state.score;
+
+            // Memasang Nama dan NIP Guru / Wali Kelas ke Rapor
+            const teacherEl = document.getElementById('rapor-teacher-name');
+            const nipEl = document.getElementById('rapor-teacher-nip');
+
+            if (state.teacherName !== "") {
+                teacherEl.innerText = state.teacherName.toUpperCase();
+            } else {
+                teacherEl.innerText = "( .................................................... )";
+            }
+
+            if (state.teacherNip !== "") {
+                nipEl.innerText = `NIP. ${state.teacherNip}`;
+            } else {
+                nipEl.innerText = "NIP. -";
+            }
+
+            const now = new Date().toLocaleDateString('id-ID', {
+                day: 'numeric', month: 'long', year: 'numeric'
+            });
+            document.getElementById('rapor-print-date').innerText = `Kota Jambi, ${now}`;
+
+            const message = document.getElementById('rapor-message');
+            const stars = document.getElementById('rapor-stars');
+
+            // LOGIKA 5 BINTANG DAN NARRATIVE FEEDBACK
+            if (state.score >= 90) {
+                message.innerText = `"Sangat Luar Biasa! Ananda ${state.studentName} berhasil menyelesaikan seluruh tantangan materi ${state.subject} dengan pencapaian yang amat sempurna. Kemampuan analisis dan ketelitian Ananda sangat menonjol. Pertahankan semangat belajar yang luar biasa ini dan jadilah inspirasi bagi teman-teman di kelas!"`;
+                stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>';
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+                }
+            } else if (state.score >= 75) {
+                message.innerText = `"Kerja bagus! Ananda ${state.studentName} telah menunjukkan pemahaman yang sangat baik dalam menyelesaikan soal-soal ${state.subject}. Hanya butuh sedikit ketelitian lagi pada beberapa konsep materi untuk meraih nilai sempurna. Teruslah berlatih dengan tekun!"`;
+                stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>';
+            } else if (state.score >= 60) {
+                message.innerText = `"Pencapaian yang baik! Ananda ${state.studentName} sudah mampu memahami dasar-dasar materi ${state.subject} dengan cukup baik. Disarankan untuk memperbanyak latihan soal interaktif dan membaca kembali petunjuk belajar agar penguasaan materi semakin mantap."`;
+                stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+            } else if (state.score >= 40) {
+                message.innerText = `"Usaha yang cukup baik! Ananda ${state.studentName} telah mencoba menyelesaikan permainan dengan gigih. Jangan berkecil hati, luangkan waktu untuk mempelajari kembali penjelasan soal dan coba latihan secara rutin agar kemampuan berkembang lebih pesat."`;
+                stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+            } else {
+                message.innerText = `"Tetap semangat dan pantang menyerah! Setiap proses belajar membutuhkan waktu dan latihan bertahap. Mintalah bimbingan dari guru maupun orang tua untuk mereview kembali materi ${state.subject}, lalu coba kembali tantangan ini sampai berhasil!"`;
+                stars.innerHTML = '<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>';
+            }
+        }
+
+        function getGameModeLabel(mode) {
+            const labels = {
+                'quiz': 'Kuis Interaktif',
+                'memory': 'Kartu Memori',
+                'sort': 'Tarik & Kelompokkan',
+                'scramble': 'Susun Kata',
+                'fastmath': 'Tangkas Berhitung'
+            };
+            return labels[mode] || mode;
+        }
+
+        function restartCurrentGame() {
+            playSound('sound-click');
+            document.getElementById('screen-rapor').classList.add('hidden');
+            launchGameMode(state.gameMode);
+        }
+
+        function printRapor() {
+            playSound('sound-click');
+            window.print();
+        }
+    </script>
+</body>
+</html>
